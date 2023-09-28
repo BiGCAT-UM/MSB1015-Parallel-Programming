@@ -1,3 +1,6 @@
+###########################################
+# -----_- Install required packages -----_#
+###########################################
 install.packages("data.table")
 install.packages("microbenchmark")
 install.packages("doParallel")
@@ -7,7 +10,16 @@ install.packages("randomForest")
 install.packages("caret")
 install.packages("BiocManager")
 BiocManager::install("EBImage")
-#apt update && apt-get install -y libfftw3-dev
+
+# if you got an error when installing EBImage and you are using Linux OS
+# then run the following command to install the required packages
+# then try installing EBImage again
+
+# apt update && apt-get install -y libfftw3-dev
+
+######################################################
+# Check the number of logical cores (threads) you have
+######################################################
 
 library(doParallel)
 library(microbenchmark)
@@ -15,11 +27,16 @@ library(microbenchmark)
 detectCores()
 detectCores(logical = FALSE)
 
-#In order to measure the time needed to execute code, we will use the "microbenchmark" package
-#which tests the code execution time through multiple runs and reports the average time.
+
+###########################################
+# ------------ Side note ----------------_#
+###########################################
+
+# In order to measure the time needed to execute code, we will use the "microbenchmark" package
+# which tests the code execution time through multiple runs and reports the average time.
 # Documentation: https://cran.r-project.org/web/packages/microbenchmark/microbenchmark.pdf
 
-#However, if you want to have a similar functionality in your R scripts aside from "microbenchmark", you can use the following code snippet.
+# However, if you want to have a similar functionality in your R scripts aside from "microbenchmark", you can use the following code snippet.
 
 time_runs <- c()
 
@@ -47,12 +64,28 @@ for(n in n_cores){
   time_runs <- c(time_runs, time_taken)
 }
 
-#####################################################################
+###############################################################
+# Exercise 1: Read files in parallel, using the "camog" package
+###############################################################
+
+# Download the augmented gene expression file from the following link, unzip the file and place the resulting CSV inside the data/ folder
+# https://drive.google.com/file/d/1xpaueGzBUpK2lSECN-JpbReg3pKUqFcq/view?usp=sharing
+# 
+# This is a made-up large file simulating gene expression data for 3000 sample and ~43000 human genes
+# 
+# The file size is ~2.4GB and the large size is considered on purpose to allow measuring reasonable difference in performance when reading it in a parallel way
 
 library(doParallel)
 library(data.table)
 
 setwd('/home/rstudio/workspace/parallel-practical')
+
+
+# The following 4 code snippets read the file "augmented_gene_expression.csv" using 1,2,4,8 threads respectively and print the execution time underneath each cell.
+# Run those cells and compare the obtained times.
+# 
+# What are your observations?
+
 
 setDTthreads(1)
 
@@ -84,20 +117,32 @@ tm <- microbenchmark(fread("data/augmented_gene_expression.csv"),
 )
 print(tm)
 
+# Lets check now the run time when using the built-in read.csv function to read the file
 
 tm <- microbenchmark(read.csv("data/augmented_gene_expression.csv"),
                      times = 10L
 )
 print(tm)
 
+# The "data.table" package is an open source project available on GitHub https://github.com/Rdatatable/data.table
+# 
+# Check the source code file reponsible for reading the csv file in parallel and explain what type of parallel programming is used in this package, which programming language and what library is used.
+#   
+# Hint: start with this file https://github.com/Rdatatable/data.table/blob/master/src/openmp-utils.c
 
-#https://github.com/Rdatatable/data.table/blob/master/src/openmp-utils.c
-
-#################################
+###############################################################################################
+# Exercise 2: Populate a dataframe with API calls (enrich UniProt IDs with protein information)
+###############################################################################################
 
 library(doParallel)
 library(httr)
 library(jsonlite)
+
+# The code cell bellow define a function that will be applied on each dataframe chunk processed in parallel. 
+# It takes a dataframe as input (in the parallel way, the dataframe is split into multiple chunks, each to be handled by a different thread) 
+# and returns the same dataframe after filling the empty column.
+
+# Explain the function code below using comments showing the role of each piece of code
 
 process_df_row <- function(df){
   
@@ -148,10 +193,18 @@ process_df_row <- function(df){
   return(df)
 }
 
+# The following code line reads a dataframe of 100 rows and five columns. The first column contains UniProt IDs for 100 proteins and the remaing columns are empty.
+# The purpose of this exercise is to apply parallel computing on a dataframe and make external API calls to retrieve information about the protiens in the first column and fill the rest of empty column with relevant information about those proteins.
+
 uniprot_df <- read.csv('data/uniprot_ids_df.csv')
 
+# this line is meant to show how the output look like and not meant to assess performance
 uniprot_df_enriched <- process_df_row(uniprot_df)
 
+# The following two statements compare the sequential and parallel processing of the dataframe.
+# Run the code and compare the results.
+# 
+# You can try the parallel part with different number of cores and see how does that effect the execution time
 
 microbenchmark(process_df_row(uniprot_df), times=10L)
 
@@ -178,11 +231,19 @@ microbenchmark( "exp" = {
   }, times = 10L
 )
 
-#################################
+#########################################################################
+# Exercise 3: Apply edge detection to blood cell image files in parallel
+#########################################################################
+
+# In this exercise, we will work with applying an image processing function on a large number of blood cell images (simulating what you would do in a similar research project) and we will compare this process with and without parallel computing.
+# The dataset was originally obtained from Kaggle (https://www.kaggle.com/datasets/paultimothymooney/blood-cells/). However, the images were copied and multiplied a couple of times to increase their number in order the observe reasonable differences between sequential and parallel approaches.
+# Therefore, download the image dataset from the following URL: https://drive.google.com/file/d/1a5EPJPSrrpaKTu6tvIY37sdtqoPdTMNd/view?usp=sharing
+# Unzip the folder into the data/ folder and make sure that you have the images directly under data/original_images/
 
 library(doParallel)
 library(EBImage)
 
+# Get a list of all image file names in the specified path
 list_of_files <- list.files(path="data/original_images", pattern=".jpg", all.files=FALSE, full.names=FALSE)
 
 length(list_of_files)
@@ -234,11 +295,16 @@ microbenchmark( "exp" = {
   }, times = 3L
 )
 
-#################################
+# What is the difference in using pool.map() in this excercise compared to excercise 2?
+
+#######################################################################
+# Exercise 4: machine learning model training using parallel computing
+#######################################################################
 
 library(doParallel)
 library(caret)
 
+# make up a regression dataset sample to use it for machine learning model training
 dataset <- matrix(rnorm(13000),nrow=500)
 
 time_runs <- c()
@@ -271,18 +337,20 @@ for(n in n_cores){
 
 plot(n_cores, time_runs)
 
-#################################################################
 
+# To learn more about the caret package and parallel processing in caret, check this link: https://topepo.github.io/caret/parallel-processing.html
 
+#################################################################################
 ## Exercise 5: Solve the following problem using a parallel programming approach
+#################################################################################
 
-# 1. Load the CSV file in the "data" folder, named "pdb_ids.csv" using Pandas
+# 1. Load the CSV file in the "data" folder, named "pdb_ids.csv" using read.csv function
 # 2. Create a function to process each row of the dataframe. The function should take one argument of type DataFrame and return a dataframe object.
 # The function should iterate through the dataframe rows and perform the following steps:
 #   * Get the PDB ID from the relevant column and make an HTTP call to download the protein image from PDB (use the following URL template: http://cdn.rcsb.org/images/structures/dl/{}/{}_assembly-1.jpeg).
-# * Save the content of the response (binary content) to an image file stored in the folder "data/pdb_images" named with the PDB id and the extension "jpeg"
-# * read the image file from the folder using OpenCV and extract the size of the image (i.e. width and height)
-# * store the width and the height of the image in the relevant columns in the dataframe
+#   * Save the content of the response (binary content) to an image file stored in the folder "data/pdb_images" named with the PDB id and the extension "jpeg"
+#   * read the image file from the folder using OpenCV and extract the size of the image (i.e. width and height)
+#   * store the width and the height of the image in the relevant columns in the dataframe
 # 3. Save the dataframe to a file
 # 4. Use the timing template provided at the beginning of this notebook to time your code and test it using 2, 4 and 8 cores
 
