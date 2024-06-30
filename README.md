@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/697530303.svg)](https://zenodo.org/doi/10.5281/zenodo.12601268)
+
 This repository contains practical materials for the "Parallel Programming" topic in the course of "MSB1015 - Scientific Programming" 
 
 The practical is made available in two programming languages: R and Python.
