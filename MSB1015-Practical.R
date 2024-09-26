@@ -15,7 +15,7 @@ BiocManager::install("EBImage")
 # then run the following command to install the required packages
 # then try installing EBImage again
 
-# apt update && apt-get install -y libfftw3-dev
+# apt update && apt-get install -y libfftw3-dev libtiff-dev
 
 ######################################################
 # Check the number of logical cores (threads) you have
