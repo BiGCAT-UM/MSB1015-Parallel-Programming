@@ -14,3 +14,8 @@ In the downloaded/forked folder, there are two options:
 - **For Python users:**
   - Python >= 3.8 and Jupyter Notebook are required to run the practical notebook.
   - Use MSB1015-Practical.ipynb (instructions included in the notebook file)
+
+## Windows
+
+On Windows, running the Jupyter Notebook will install the camog package. This in turn,
+may want to compile C++ code, and you many be asked to install that.
