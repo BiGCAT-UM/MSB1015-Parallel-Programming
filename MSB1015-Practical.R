@@ -347,7 +347,9 @@ plot(n_cores, time_runs)
 # 1. Load the CSV file in the "data" folder, named "pdb_ids.csv" using read.csv function
 # 2. Create a function to process each row of the dataframe. The function should take one argument of type DataFrame and return a dataframe object.
 # The function should iterate through the dataframe rows and perform the following steps:
-#   * Get the PDB ID from the relevant column and make an HTTP call to download the protein image from PDB (use the following URL template: http://cdn.rcsb.org/images/structures/dl/{}/{}_assembly-1.jpeg).
+#   * Get the PDB ID from the relevant column and make an HTTP call to download the protein image
+#       from PDB (use the following URL template: https://cdn.rcsb.org/images/structures/{}_assembly-1.jpeg
+#       In this template the {} is where you put the PDB ID (in lower case), e.g. 1crn
 #   * Save the content of the response (binary content) to an image file stored in the folder "data/pdb_images" named with the PDB id and the extension "jpeg"
 #   * read the image file from the folder using OpenCV and extract the size of the image (i.e. width and height)
 #   * store the width and the height of the image in the relevant columns in the dataframe
